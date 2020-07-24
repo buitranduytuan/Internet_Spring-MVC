@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:context="http://www.springframework.org/schema/context"
+    xmlns:mvc="http://www.springframework.org/schema/mvc"
+    xmlns:tx="http://www.springframework.org/schema/tx"
+    xmlns:jpa="http://www.springframework.org/schema/data/jpa"
+    xsi:schemaLocation="http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-4.3.xsd
+        http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.3.xsd
+        http://www.springframework.org/schema/data/jpa http://www.springframework.org/schema/data/jpa/spring-jpa-1.8.xsd
+        http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.3.xsd">
+
+    <!-- Enable Autowired -->
+    <context:annotation-config />
+
+    <!-- 1. PROCESS APPLICATION REQUEST -->
+    <!-- 1.1. Configuration for component scanning -->
+    <context:component-scan base-package="vn.com.fsoft.app" />
+
+    <!-- 1.2. Allow for dispatching requests to Controllers -->
+    <mvc:annotation-driven /> 
+
+    <!-- 2. SPRING DATA CONFIGURATION -->
+    <!-- JPA Configuration -->
+    <jpa:repositories base-package="tuanbtd.app.repository"></jpa:repositories>
+
+    <!-- 2.1. Configuration the JDBC connection -->
+    <bean name="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+        <!-- For Oracle -->
+        <!-- <property name="driverClassName" value="oracle.jdbc.driver.OracleDriver" /> -->
+
+        <!-- For MySQL -->
+        <!-- <property name="driverClassName" value="com.mysql.jdbc.Driver" /> -->
+
+        <!-- For SQL Server -->
+        <property name="driverClassName" value="com.microsoft.sqlserver.jdbc.SQLServerDriver" />
+
+        <property name="url" value="${dataSource.url}" />
+        <property name="username" value="${dataSource.username}" />
+        <property name="password" value="${dataSource.password}" />
+    </bean>
+
+    <!-- 2.2. Session Factory Configuration -->
+    <bean id="sessionFactory" class="org.springframework.orm.hibernate4.LocalSessionFactoryBean">
+        <property name="dataSource" ref="dataSource"></property>
+        <property name="packagesToScan" value="tuanbtd.app.entity"></property>
+        <property name="hibernateProperties">
+            <props>
+                <!-- For Oracle -->
+                <!-- <prop key="hibernate.dialect">org.hibernate.dialect.Oracle10gDialect</prop> -->
+
+                <!-- For MySQL -->
+                <!-- <prop key="hibernate.dialect">org.hibernate.dialect.MySQL5Dialect</prop> -->
+
+                <!-- For SQLServer -->
+                <prop key="hibernate.dialect">org.hibernate.dialect.SQLServer2012Dialect</prop>
+                <prop key="hibernate.current_session_context_class">thread</prop>
+                <prop key="hibernate.transaction.factory_class">org.hibernate.transaction.JDBCTransactionFactory</prop>
+                <prop key="hibernate.show_sql">true</prop>
+                <prop key="hibernate.connection.CharSet">utf8</prop>
+                <prop key="hibernate.connection.characterEncoding">utf8</prop>
+                <prop key="hibernate.connection.useUnicode">true</prop>
+                <prop key="hibernate.hbm2ddl.auto">update</prop>
+            </props>
+        </property>
+    </bean>
+
+    <!-- 2.3. Container Entity Manager Factory Configuration -->
+    <bean name="entityManagerFactory" class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean">
+        <property name="dataSource" ref="dataSource"></property>
+        <property name="packagesToScan" value="tuanbtd.app.entity"></property>
+        <property name="jpaVendorAdapter">
+            <bean class="org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter"></bean>
+        </property>
+    </bean>
+
+    <!-- 2.4. Transaction Manager Configuration -->
+    <bean name="transactionManager" class="org.springframework.orm.jpa.JpaTransactionManager">
+        <property name="entityManagerFactory" ref="entityManagerFactory"></property>
+    </bean>
+
+    <!-- Enable Annotation Driven Transaction Management -->
+    <tx:annotation-driven transaction-manager="transactionManager" />
+
+    <!-- Persistence Exception -->
+    <bean id="persistenceExceptionTranslationPostProcessor" class="org.springframework.dao.annotation.PersistenceExceptionTranslationPostProcessor" />
+
+    <!-- 3. SPRING RESOURCE MAPPING -->
+    <!-- Allow CSS, JS file -->
+    <mvc:resources mapping="/resources/**" location="/resources/" />
+
+    <!-- Application Properties Configuration -->
+    <context:property-placeholder location="classpath:application.properties" />
+
+    <!-- Messages Configuration -->
+    <bean id="messageSource" class="org.springframework.context.support.ReloadableResourceBundleMessageSource">
+        <property name="basenames">
+            <value>classpath:messages</value>
+        </property>
+    </bean>
+
+    <!-- Upload file Configuration -->
+    <bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+        <property name="maxUploadSize" value="10000000" />
+    </bean>
+
+    <!-- 4. Other -->
+    <!-- add bean here -->
+</beans>
